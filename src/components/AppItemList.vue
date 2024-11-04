@@ -1,23 +1,7 @@
-<!-- src/components/AppItemList.vue -->
-<template>
-  <div class="item-list">
-    <div class="grid">
-      <div class="grid-item" v-for="item in items" :key="item.id">
-        <AppItemCard
-            :item="item"
-            @item-click="onItemClick"
-            @item-wish-status-change="onItemWishStatusChange"
-            @item-add-to-cart="onItemAddToCart"
-        />
-      </div>
-    </div>
-  </div>
-</template>
-
 <script lang="ts">
-import { defineComponent } from 'vue';
-import AppItemCard from './AppItemCard.vue';
-import { Item } from '../types/model.types';
+import type { Item } from '../types/model.types'
+import { defineComponent } from 'vue'
+import AppItemCard from './AppItemCard.vue'
 
 export default defineComponent({
   name: 'AppItemList',
@@ -30,20 +14,35 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['item-click', 'item-wish-status-change', 'item-add-to-cart'],
+  emits: ['itemClick', 'itemWishStatusChange', 'itemAddToCart'],
   methods: {
     onItemClick(itemId: number) {
-      this.$emit('item-click', itemId);
+      this.$emit('itemClick', itemId)
     },
     onItemWishStatusChange(itemId: number, isWish: boolean) {
-      this.$emit('item-wish-status-change', itemId, isWish);
+      this.$emit('itemWishStatusChange', itemId, isWish)
     },
     onItemAddToCart(itemId: number) {
-      this.$emit('item-add-to-cart', itemId);
+      this.$emit('itemAddToCart', itemId)
     },
   },
-});
+})
 </script>
+
+<template>
+  <div class="item-list">
+    <div class="grid">
+      <div v-for="item in items" :key="item.id" class="grid-item">
+        <AppItemCard
+          :item="item"
+          @item-click="onItemClick"
+          @item-wish-status-change="onItemWishStatusChange"
+          @item-add-to-cart="onItemAddToCart"
+        />
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .item-list {
@@ -52,8 +51,8 @@ export default defineComponent({
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(4, 1fr); /* Три елементи в ряд */
+  gap: 1.5rem; /* Відступи між елементами */
 }
 
 .grid-item {
