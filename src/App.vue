@@ -1,11 +1,12 @@
 <script setup lang="ts">
+import type { ItemCategory, ItemFilterOptions } from '../src/types/model.types'
 import Filters from '../src/components/AppFilterDialogComponent.vue'
 
-const filterOptions: ItemFilterOptions = {  // це для тесту
+const filterOptions: ItemFilterOptions = { // це для тесту
   minPrice: 1,
   maxPrice: 10000,
-  categoryId: null,
-};
+  categoryId: undefined,
+}
 
 const categories: ItemCategory[] = [
   { id: 1, name: 'Electronics' },
@@ -13,8 +14,7 @@ const categories: ItemCategory[] = [
   { id: 3, name: 'Clothing' },
   { id: 4, name: 'Garden' },
 
-];
-
+]
 </script>
 
 <template>
