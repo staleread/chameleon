@@ -1,10 +1,16 @@
 <script lang="ts">
-import type { Item } from '../types/model.types'
-import { useToast } from 'primevue/usetoast'
-import { defineComponent, ref } from 'vue'
+import type { Item } from '../types/model.types';
+import { useToast } from 'primevue/usetoast';
+import { defineComponent, ref } from 'vue';
+import Tag from 'primevue/tag'; // Доданий компонент
+import Button from 'primevue/button'; // Доданий компонент
 
 export default defineComponent({
   name: 'AppItemCard',
+  components: {
+    Tag,
+    Button,
+  },
   props: {
     item: {
       type: Object as () => Item,
@@ -13,31 +19,31 @@ export default defineComponent({
   },
   emits: ['itemClick', 'itemWishStatusChange', 'itemAddToCart'],
   setup(props, { emit }) {
-    const isWish = ref(false)
-    const toast = useToast()
+    const isWish = ref(false);
+    const toast = useToast();
 
     const onCardClick = () => {
-      emit('itemClick', props.item.id)
-    }
+      emit('itemClick', props.item.id);
+    };
 
     const toggleWishList = () => {
-      isWish.value = !isWish.value
-      emit('itemWishStatusChange', props.item.id, isWish.value)
+      isWish.value = !isWish.value;
+      emit('itemWishStatusChange', props.item.id, isWish.value);
       toast.add({
         severity: 'info',
         summary: isWish.value ? 'Added to Wish List' : 'Removed from Wish List',
         detail: props.item.title,
         life: 3000,
-      })
-    }
+      });
+    };
 
     const addToCart = () => {
-      emit('itemAddToCart', props.item.id)
-    }
+      emit('itemAddToCart', props.item.id);
+    };
 
     const onTitleClick = (event: Event) => {
-      event.stopPropagation()
-    }
+      event.stopPropagation();
+    };
 
     return {
       isWish,
@@ -45,36 +51,33 @@ export default defineComponent({
       toggleWishList,
       addToCart,
       onTitleClick,
-    }
+    };
   },
-})
+});
 </script>
 
 <template>
   <div class="item-card" @click="onCardClick">
     <div class="image-container">
-      <img :src="item.imageUrl" alt="Item Image" draggable="false" class="item-image" />
+      <img :src="item.imageUrl" alt="Item Image" draggable="false" class="item-image">
     </div>
     <div class="item-details">
-      <span class="category-tag">{{ item.categoryName }}</span>
-      <h3 @click.stop="onTitleClick" class="item-title">
+      <Tag :value="item.categoryName" class="category-tag" />
+      <h3 class="item-title" @click.stop="onTitleClick">
         {{ item.title }}
       </h3>
-      <p class="price">${{ item.price }}</p>
+      <p class="price">
+        ${{ item.price }}
+      </p>
       <div class="buttons">
-        <button class="cart-button" @click.stop="addToCart">
-          <i class="pi pi-shopping-cart"></i> Buy Now
-        </button>
-        <button class="wish-button" @click.stop="toggleWishList">
-          <i class="pi" :class="[isWish ? 'pi-heart-fill' : 'pi-heart']"></i>
-        </button>
+        <Button label="Buy Now" icon="pi pi-shopping-cart" class="cart-button" @click.stop="addToCart" />
+        <Button icon="pi" :icon="[isWish ? 'pi-heart-fill' : 'pi-heart']" class="wish-button" @click.stop="toggleWishList" />
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-
 .item-card {
   border: 1px solid #e0e0e0;
   border-radius: 8px;
@@ -85,8 +88,8 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  width: 400px; /* Задаємо квадратну ширину */
-  height: 300px; /* Задаємо квадратну висоту */
+  width: 400px;
+  height: 300px;
 }
 
 .item-card:hover {
@@ -98,29 +101,19 @@ export default defineComponent({
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 60%; /* Висота контейнера зображення */
+  height: 60%;
   overflow: hidden;
 }
 
 .item-image {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Щоб зображення заповнювало контейнер */
+  object-fit: cover;
 }
 
 .item-details {
   padding: 0.5rem;
   text-align: center;
-}
-
-.category-tag {
-  display: block;
-  background-color: #f0f0f0;
-  color: #333;
-  padding: 0.3rem 0.6rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  margin-bottom: 0.3rem;
 }
 
 .item-title {
@@ -148,37 +141,7 @@ export default defineComponent({
   margin-top: 0.5rem;
 }
 
-.cart-button {
-  background-color: #000;
-  color: #fff;
-  border: none;
-  width: 400px;
-  padding: 0.3rem 0.6rem;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.cart-button:hover {
-  background-color: #333;
-}
-
-.wish-button {
-  border-radius: 5px;
-  background: none;
-  cursor: pointer;
-}
-
 .wish-button .pi {
-  margin-top: 6px;
   font-size: 1.5rem;
-  color: #f00;
-}
-
-.pi-heart-fill {
-  color: #f00;
 }
 </style>
