@@ -4,23 +4,11 @@ import AppItemCard from './AppItemCard.vue'
 
 const props = defineProps<{ items: Item[] }>()
 
-const emit = defineEmits<{
+defineEmits<{
   (e: 'itemClick', itemId: number): void
   (e: 'itemWishStatusChange', itemId: number, isWish: boolean): void
   (e: 'itemAddToCart', itemId: number): void
 }>()
-
-function onItemClick(itemId: number) {
-  emit('itemClick', itemId)
-}
-
-function onItemWishStatusChange(itemId: number, isWish: boolean) {
-  emit('itemWishStatusChange', itemId, isWish)
-}
-
-function onItemAddToCart(itemId: number) {
-  emit('itemAddToCart', itemId)
-}
 </script>
 
 <template>
@@ -32,9 +20,9 @@ function onItemAddToCart(itemId: number) {
     >
       <AppItemCard
         :item="item"
-        @item-click="onItemClick"
-        @item-wish-status-change="onItemWishStatusChange"
-        @item-add-to-cart="onItemAddToCart"
+        @item-click="$emit('itemClick', item.id)"
+        @item-wish-status-change="(isWish) => $emit('itemWishStatusChange', item.id, isWish)"
+        @item-add-to-cart="$emit('itemAddToCart', item.id)"
       />
     </div>
   </div>
