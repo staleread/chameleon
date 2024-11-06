@@ -23,6 +23,8 @@ const toast = useToast()
 const isDialogVisible = ref(false)
 const priceValue = ref([props.filterOptions.minPrice, props.filterOptions.maxPrice])
 const selectedCategory = ref(props.filterOptions.categoryId)
+const minPrice = computed(() => props.filterOptions.minPrice)
+const maxPrice = computed(() => props.filterOptions.maxPrice)
 
 watch(() => props.filterOptions, (newOptions) => {
   setFilterOptions.value = { ...newOptions }
@@ -39,7 +41,7 @@ watch(selectedCategory, (newCategoryId) => {
 })
 
 function resetFilters() {
-  priceValue.value = [1, 10000]
+  priceValue.value = [minPrice.value, maxPrice.value]
   selectedCategory.value = undefined
 }
 
@@ -79,7 +81,7 @@ function applyFilters() {
         <label for="price" class="font-semibold w-24">Price range</label>
         <div class="flex flex-col items-center w-56">
           <span class="mb-2">{{ priceValue[0] }} - {{ priceValue[1] }}</span>
-          <Slider v-model="priceValue" :min="1" :max="10000" :step="10" range class="w-full" />
+          <Slider v-model="priceValue" :min="minPrice" :max="maxPrice" :step="10" range class="w-full" />
         </div>
       </div>
 
