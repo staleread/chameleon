@@ -1,44 +1,26 @@
-<script lang="ts">
+<script setup lang="ts">
 import type { Item } from '../types/model.types'
-import { defineComponent } from 'vue'
 import AppItemCard from './AppItemCard.vue'
 
-export default defineComponent({
-  name: 'AppItemList',
-  components: {
-    AppItemCard,
-  },
-  props: {
-    items: {
-      type: Array as () => Item[],
-      required: true,
-    },
-  },
-  emits: {
-    itemClick: (_itemId: number) => true,
-    itemWishStatusChange: (_itemId: number, _isWish: boolean) => true,
-    itemAddToCart: (_itemId: number) => true,
-  },
-  setup(_props, { emit }) {
-    const onItemClick = (itemId: number) => {
-      emit('itemClick', itemId)
-    }
+defineProps<{ items: Item[] }>()
 
-    const onItemWishStatusChange = (itemId: number, isWish: boolean) => {
-      emit('itemWishStatusChange', itemId, isWish)
-    }
+const emit = defineEmits<{
+  (e: 'itemClick', itemId: number): void
+  (e: 'itemWishStatusChange', itemId: number, isWish: boolean): void
+  (e: 'itemAddToCart', itemId: number): void
+}>()
 
-    const onItemAddToCart = (itemId: number) => {
-      emit('itemAddToCart', itemId)
-    }
+function onItemClick(itemId: number) {
+  emit('itemClick', itemId)
+}
 
-    return {
-      onItemClick,
-      onItemWishStatusChange,
-      onItemAddToCart,
-    }
-  },
-})
+function onItemWishStatusChange(itemId: number, isWish: boolean) {
+  emit('itemWishStatusChange', itemId, isWish)
+}
+
+function onItemAddToCart(itemId: number) {
+  emit('itemAddToCart', itemId)
+}
 </script>
 
 <template>

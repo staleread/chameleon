@@ -1,64 +1,43 @@
-<script lang="ts">
+<script setup lang="ts">
 import type { Item } from '../types/model.types'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import { useToast } from 'primevue/usetoast'
-import { defineComponent, ref } from 'vue'
+import { ref } from 'vue'
 
-export default defineComponent({
-  name: 'AppItemCard',
-  components: {
-    Tag,
-    // eslint-disable-next-line vue/no-reserved-component-names
-    Button,
-  },
-  props: {
-    item: {
-      type: Object as () => Item,
-      required: true,
-    },
-  },
-  emits: {
-    itemClick: (_itemId: number) => true,
-    itemWishStatusChange: (_itemId: number, _isWish: boolean) => true,
-    itemAddToCart: (_itemId: number) => true,
-  },
-  setup(props, { emit }) {
-    const isWish = ref(false)
-    const toast = useToast()
+const props = defineProps<{ item: Item }>()
 
-    const onCardClick = () => {
-      emit('itemClick', props.item.id)
-    }
+const emit = defineEmits<{
+  (e: 'itemClick', itemId: number): void
+  (e: 'itemWishStatusChange', itemId: number, isWish: boolean): void
+  (e: 'itemAddToCart', itemId: number): void
+}>()
 
-    const toggleWishList = () => {
-      isWish.value = !isWish.value
-      emit('itemWishStatusChange', props.item.id, isWish.value)
-      toast.add({
-        severity: 'info',
-        summary: isWish.value ? 'Added to Wish List' : 'Removed from Wish List',
-        detail: props.item.title,
-        life: 3000,
-      })
-    }
+const isWish = ref(false)
+const toast = useToast()
 
-    const addToCart = () => {
-      emit('itemAddToCart', props.item.id)
-    }
+function onCardClick() {
+  emit('itemClick', props.item.id)
+}
 
-    const onTitleClick = (event: Event) => {
-      event.stopPropagation()
-    }
+function toggleWishList() {
+  isWish.value = !isWish.value
+  emit('itemWishStatusChange', props.item.id, isWish.value)
+  toast.add({
+    severity: 'info',
+    summary: isWish.value ? 'Added to Wish List' : 'Removed from Wish List',
+    detail: props.item.title,
+    life: 3000,
+  })
+}
 
-    return {
-      isWish,
-      onCardClick,
-      toggleWishList,
-      addToCart,
-      onTitleClick,
-    }
-  },
-})
+function addToCart() {
+  emit('itemAddToCart', props.item.id)
+}
+
+function onTitleClick(event: Event) {
+  event.stopPropagation()
+}
 </script>
 
 <template>
