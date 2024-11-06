@@ -39,17 +39,24 @@ function addToCart() {
 <template>
   <div
     class="p-6 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded flex flex-col"
-    @click="onCardClick"
   >
     <div class="bg-surface-50 flex justify-center rounded">
       <div class="relative mx-auto">
-        <img class="rounded w-full max-w-96" :src="item.imageUrl" draggable="false">
+        <img
+          class="rounded w-full max-w-96 cursor-pointer"
+          :src="item.imageUrl"
+          draggable="false"
+          @click="$emit('itemClick')"
+        >
       </div>
     </div>
     <div class="pt-6">
       <div>
         <Tag severity="secondary" :value="item.categoryName" />
-        <div class="text-lg font-medium mt-1">
+        <div
+          class="text-lg font-medium mt-1 hover:underline cursor-pointer"
+          @click="$emit('itemClick')"
+        >
           {{ item.title }}
         </div>
       </div>
