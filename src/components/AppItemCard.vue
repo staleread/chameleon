@@ -34,98 +34,41 @@ function toggleWishList() {
 function addToCart() {
   emit('itemAddToCart', props.item.id)
 }
-
-function onTitleClick(event: Event) {
-  event.stopPropagation()
-}
 </script>
 
 <template>
-  <div class="item-card" @click="onCardClick">
-    <div class="image-container">
-      <img :src="item.imageUrl" alt="Item Image" draggable="false" class="item-image">
+  <div
+    class="p-6 border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 rounded flex flex-col"
+    @click="onCardClick"
+  >
+    <div class="bg-surface-50 flex justify-center rounded">
+      <div class="relative mx-auto">
+        <img class="rounded w-full max-w-96" :src="item.imageUrl" draggable="false">
+      </div>
     </div>
-    <div class="item-details">
-      <Tag :value="item.categoryName" class="category-tag" />
-      <h3 class="item-title" @click.stop="onTitleClick">
-        {{ item.title }}
-      </h3>
-      <p class="price">
-        ${{ item.price }}
-      </p>
-      <div class="buttons">
-        <Button label="Buy Now" icon="pi pi-shopping-cart" class="cart-button" @click.stop="addToCart" />
-        <Button :icon="isWish ? 'pi pi-heart-fill' : 'pi pi-heart'" class="wish-button" @click.stop="toggleWishList" />
+    <div class="pt-6">
+      <div>
+        <Tag severity="secondary" :value="item.categoryName" />
+        <div class="text-lg font-medium mt-1">
+          {{ item.title }}
+        </div>
+      </div>
+      <div class="flex flex-col gap-6 mt-6">
+        <span class="text-2xl font-semibold">${{ item.price }}</span>
+        <div class="flex gap-2">
+          <Button
+            icon="pi pi-shopping-cart"
+            label="Add to Cart"
+            class="flex-auto whitespace-nowrap"
+            @click.stop="addToCart"
+          />
+          <Button
+            :icon="isWish ? 'pi pi-heart-fill' : 'pi pi-heart'"
+            outlined
+            @click.stop="toggleWishList"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.item-card {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: box-shadow 0.3s;
-  background-color: #fff;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 400px;
-  height: 300px;
-}
-
-.item-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.image-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 60%;
-  overflow: hidden;
-}
-
-.item-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.item-details {
-  padding: 0.5rem;
-  text-align: center;
-}
-
-.item-title {
-  margin: 0.3rem 0;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: text-decoration 0.3s;
-}
-
-.item-title:hover {
-  text-decoration: underline;
-}
-
-.price {
-  font-size: 1.2rem;
-  color: #333;
-  font-weight: bold;
-  margin: 0.3rem 0;
-}
-
-.buttons {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-}
-
-.wish-button{
-  font-size: 1.5rem;
-}
-</style>
