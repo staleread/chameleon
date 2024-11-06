@@ -10,7 +10,7 @@ import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   filterOptions: ItemFilterOptions
-  categories: ItemCategory[]
+  fetchCategories: () => Promise<ItemCategory[]>
 }>()
 
 const emit = defineEmits<{
@@ -25,6 +25,8 @@ const priceValue = ref([props.filterOptions.minPrice, props.filterOptions.maxPri
 const selectedCategory = ref(props.filterOptions.categoryId)
 const minPrice = computed(() => props.filterOptions.minPrice)
 const maxPrice = computed(() => props.filterOptions.maxPrice)
+const categories = ref<ItemCategory[]>([])
+const isLoading = ref(false)
 
 watch(() => props.filterOptions, (newOptions) => {
   setFilterOptions.value = { ...newOptions }
@@ -66,6 +68,25 @@ function applyFilters() {
   isDialogVisible.value = false
   showToast()
 }
+
+async function loadCategories() {
+  isLoading.value = true
+  try {
+    categories.value = await props.fetchCategories()
+  }
+  catch (error) {
+    console.error(error)
+  }
+  finally {
+    isLoading.value = false
+  }
+}
+
+watch(isDialogVisible, async (newVal) => {
+  if (newVal && categories.value.length === 0) {
+    await loadCategories()
+  }
+})
 </script>
 
 <template>
@@ -88,8 +109,8 @@ function applyFilters() {
       <div class="flex items-center gap-4 mb-8">
         <label for="category" class="font-semibold w-24">Category</label>
         <Select
-          v-model="selectedCategory" :options="props.categories" show-clear option-label="name"
-          placeholder="Select Category" class="w-full md:w-56"
+          v-model="selectedCategory" :options="categories" show-clear option-label="name"
+          :placeholder="isLoading ? 'Loading...' : 'Select Category'" class="w-full md:w-56" :disabled="isLoading" :loading="isLoading"
         />
       </div>
 
