@@ -2,38 +2,14 @@
 import type { Item } from '../types/model.types'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
-import { useToast } from 'primevue/usetoast'
-import { ref } from 'vue'
 
-const props = defineProps<{ item: Item }>()
+const { item } = defineProps<{ item: Omit<Item, 'id'> }>()
 
-const emit = defineEmits<{
-  (e: 'itemClick', itemId: number): void
-  (e: 'itemWishStatusChange', itemId: number, isWish: boolean): void
-  (e: 'itemAddToCart', itemId: number): void
+defineEmits<{
+  (e: 'itemClick'): void
+  (e: 'itemWishStatusChange', isWish: boolean): void
+  (e: 'itemAddToCart'): void
 }>()
-
-const isWish = ref(false)
-const toast = useToast()
-
-function onCardClick() {
-  emit('itemClick', props.item.id)
-}
-
-function toggleWishList() {
-  isWish.value = !isWish.value
-  emit('itemWishStatusChange', props.item.id, isWish.value)
-  toast.add({
-    severity: 'info',
-    summary: isWish.value ? 'Added to Wish List' : 'Removed from Wish List',
-    detail: props.item.title,
-    life: 3000,
-  })
-}
-
-function addToCart() {
-  emit('itemAddToCart', props.item.id)
-}
 </script>
 
 <template>
@@ -67,12 +43,12 @@ function addToCart() {
             icon="pi pi-shopping-cart"
             label="Add to Cart"
             class="flex-auto whitespace-nowrap"
-            @click.stop="addToCart"
+            @click.stop="$emit('itemAddToCart')"
           />
           <Button
-            :icon="isWish ? 'pi pi-heart-fill' : 'pi pi-heart'"
+            :icon="item.isWished ? 'pi pi-heart-fill' : 'pi pi-heart'"
             outlined
-            @click.stop="toggleWishList"
+            @click.stop="$emit('itemWishStatusChange', !item.isWished)"
           />
         </div>
       </div>
