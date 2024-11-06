@@ -17,24 +17,24 @@ const emit = defineEmits<{
   (e: 'filterOptionsChange', newOptions: ItemFilterOptions): void
 }>()
 
-const initialFilterOptions = ref({ ...props.filterOptions })
 const editableFilterOptions = ref({ ...props.filterOptions })
+const setFilterOptions = ref({ ...props.filterOptions })
 const toast = useToast()
-const visible = ref(false)
+const isDialogVisible = ref(false)
 const priceValue = ref([props.filterOptions.minPrice, props.filterOptions.maxPrice])
 const selectedCategory = ref(props.filterOptions.categoryId)
 
-watch(() => props.filterOptions, (newOptions) => { // зміна при передавані пропсів
-  initialFilterOptions.value = { ...newOptions }
+watch(() => props.filterOptions, (newOptions) => {
+  setFilterOptions.value = { ...newOptions }
   editableFilterOptions.value = { ...newOptions }
 })
 
-watch(priceValue, (newValue) => { // зміна ціни
+watch(priceValue, (newValue) => {
   editableFilterOptions.value.minPrice = newValue[0]
   editableFilterOptions.value.maxPrice = newValue[1]
 })
 
-watch(selectedCategory, (newCategoryId) => { // зміна категорії
+watch(selectedCategory, (newCategoryId) => {
   editableFilterOptions.value.categoryId = newCategoryId
 })
 
@@ -44,8 +44,8 @@ function resetFilters() {
 }
 
 function cancelFilters() {
-  visible.value = false
-  editableFilterOptions.value = { ...initialFilterOptions.value }
+  isDialogVisible.value = false
+  editableFilterOptions.value = { ...setFilterOptions.value }
   priceValue.value = [editableFilterOptions.value.minPrice, editableFilterOptions.value.maxPrice]
   selectedCategory.value = editableFilterOptions.value.categoryId
 }
@@ -55,13 +55,13 @@ function showToast() {
 }
 
 const isApplyDisabled = computed(() => {
-  return JSON.stringify(editableFilterOptions.value) === JSON.stringify(initialFilterOptions.value)
+  return JSON.stringify(editableFilterOptions.value) === JSON.stringify(setFilterOptions.value)
 })
 
 function applyFilters() {
-  initialFilterOptions.value = { ...editableFilterOptions.value }
-  emit('filterOptionsChange', initialFilterOptions.value)
-  visible.value = false
+  setFilterOptions.value = { ...editableFilterOptions.value }
+  emit('filterOptionsChange', setFilterOptions.value)
+  isDialogVisible.value = false
   showToast()
 }
 </script>
@@ -69,10 +69,10 @@ function applyFilters() {
 <template>
   <div class="flex justify-center">
     <Toast />
-    <Button label="Filters" @click="visible = true" />
+    <Button label="Filters" @click="isDialogVisible = true" />
 
     <Dialog
-      v-model:visible="visible" modal header="Adjust filter options" :style="{ width: '25rem' }"
+      v-model:visible="isDialogVisible" modal header="Adjust filter options" :style="{ width: '25rem' }"
       :closable="false"
     >
       <div class="flex items-center gap-4 mb-4">

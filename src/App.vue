@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { ItemCategory, ItemFilterOptions } from '../src/types/model.types'
-import Filters from '../src/components/AppFilterDialogComponent.vue'
+import AppFilterDialogComponent from '../src/components/AppFilterDialogComponent.vue'
 
-const filterOptions: ItemFilterOptions = { // це для тесту
+const filterOptions: ItemFilterOptions = {
   minPrice: 1,
   maxPrice: 10000,
   categoryId: undefined,
@@ -20,6 +20,6 @@ const categories: ItemCategory[] = [
 <template>
   Hello, Chameleon!
   <div>
-    <Filters :filter-options="filterOptions" :categories="categories" />
+    <AppFilterDialogComponent :filter-options="filterOptions" :categories="categories" />
   </div>
 </template>
