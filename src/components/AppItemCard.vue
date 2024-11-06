@@ -1,14 +1,15 @@
 <script lang="ts">
-import type { Item } from '../types/model.types';
-import { useToast } from 'primevue/usetoast';
-import { defineComponent, ref } from 'vue';
-import Tag from 'primevue/tag'; // Доданий компонент
-import Button from 'primevue/button'; // Доданий компонент
+import type { Item } from '../types/model.types'
+import Button from 'primevue/button'
+import Tag from 'primevue/tag'
+import { useToast } from 'primevue/usetoast'
+import { defineComponent, ref } from 'vue'
 
 export default defineComponent({
   name: 'AppItemCard',
   components: {
     Tag,
+    // eslint-disable-next-line vue/no-reserved-component-names
     Button,
   },
   props: {
@@ -17,33 +18,37 @@ export default defineComponent({
       required: true,
     },
   },
-  emits: ['itemClick', 'itemWishStatusChange', 'itemAddToCart'],
+  emits: {
+    itemClick: (_itemId: number) => true,
+    itemWishStatusChange: (_itemId: number, _isWish: boolean) => true,
+    itemAddToCart: (_itemId: number) => true,
+  },
   setup(props, { emit }) {
-    const isWish = ref(false);
-    const toast = useToast();
+    const isWish = ref(false)
+    const toast = useToast()
 
     const onCardClick = () => {
-      emit('itemClick', props.item.id);
-    };
+      emit('itemClick', props.item.id)
+    }
 
     const toggleWishList = () => {
-      isWish.value = !isWish.value;
-      emit('itemWishStatusChange', props.item.id, isWish.value);
+      isWish.value = !isWish.value
+      emit('itemWishStatusChange', props.item.id, isWish.value)
       toast.add({
         severity: 'info',
         summary: isWish.value ? 'Added to Wish List' : 'Removed from Wish List',
         detail: props.item.title,
         life: 3000,
-      });
-    };
+      })
+    }
 
     const addToCart = () => {
-      emit('itemAddToCart', props.item.id);
-    };
+      emit('itemAddToCart', props.item.id)
+    }
 
     const onTitleClick = (event: Event) => {
-      event.stopPropagation();
-    };
+      event.stopPropagation()
+    }
 
     return {
       isWish,
@@ -51,9 +56,9 @@ export default defineComponent({
       toggleWishList,
       addToCart,
       onTitleClick,
-    };
+    }
   },
-});
+})
 </script>
 
 <template>
@@ -71,7 +76,7 @@ export default defineComponent({
       </p>
       <div class="buttons">
         <Button label="Buy Now" icon="pi pi-shopping-cart" class="cart-button" @click.stop="addToCart" />
-        <Button icon="pi" :icon="[isWish ? 'pi-heart-fill' : 'pi-heart']" class="wish-button" @click.stop="toggleWishList" />
+        <Button :icon="isWish ? 'pi pi-heart-fill' : 'pi pi-heart'" class="wish-button" @click.stop="toggleWishList" />
       </div>
     </div>
   </div>
@@ -141,7 +146,7 @@ export default defineComponent({
   margin-top: 0.5rem;
 }
 
-.wish-button .pi {
+.wish-button{
   font-size: 1.5rem;
 }
 </style>
