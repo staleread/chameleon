@@ -1,4 +1,4 @@
-import Nora from '@primevue/themes/nora'
+import Aura from '@primevue/themes/aura'
 import PrimeVue from 'primevue/config'
 import ToastService from 'primevue/toastservice'
 import Tooltip from 'primevue/tooltip'
@@ -11,7 +11,7 @@ const app = createApp(App)
 
 app.use(PrimeVue, {
   theme: {
-    preset: Nora,
+    preset: Aura,
     options: {
       darkModeSelector: 'none',
     },
