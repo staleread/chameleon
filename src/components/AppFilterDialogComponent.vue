@@ -4,11 +4,9 @@ import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import Select from 'primevue/select'
 import Slider from 'primevue/slider'
-import Toast from 'primevue/toast'
-import { useToast } from 'primevue/usetoast'
 import { computed, ref, watch } from 'vue'
 
-const props = defineProps<{
+const { filterOptions, fetchCategories } = defineProps<{
   filterOptions: ItemFilterOptions
   fetchCategories: () => Promise<ItemCategory[]>
 }>()
@@ -17,68 +15,71 @@ const emit = defineEmits<{
   (e: 'filterOptionsChange', newOptions: ItemFilterOptions): void
 }>()
 
-const editableFilterOptions = ref({ ...props.filterOptions })
-const setFilterOptions = ref({ ...props.filterOptions })
-const toast = useToast()
+const MIN_PRICE_VALUE = 1
+const MAX_PRICE_VALUE = 10000
+const PRICE_SLIDER_STEP = 10
+
 const isDialogVisible = ref(false)
-const priceValue = ref([props.filterOptions.minPrice, props.filterOptions.maxPrice])
-const selectedCategory = ref(props.filterOptions.categoryId)
-const minPrice = computed(() => props.filterOptions.minPrice)
-const maxPrice = computed(() => props.filterOptions.maxPrice)
-const categories = ref<ItemCategory[]>([])
-const isLoading = ref(false)
 
-watch(() => props.filterOptions, (newOptions) => {
-  setFilterOptions.value = { ...newOptions }
-  editableFilterOptions.value = { ...newOptions }
+const hasChanges = ref(false)
+const minPrice = ref<number>(filterOptions.minPrice)
+const maxPrice = ref<number>(filterOptions.maxPrice)
+const categoryId = ref<number | undefined>(filterOptions.categoryId)
+
+watch([minPrice, maxPrice, categoryId], () => {
+  hasChanges.value = true
 })
 
-watch(priceValue, (newValue) => {
-  editableFilterOptions.value.minPrice = newValue[0]
-  editableFilterOptions.value.maxPrice = newValue[1]
-})
-
-watch(selectedCategory, (newCategoryId) => {
-  editableFilterOptions.value.categoryId = newCategoryId
+watch(isDialogVisible, (value: boolean) => {
+  if (value) {
+    hasChanges.value = false
+  }
 })
 
 function resetFilters() {
-  priceValue.value = [minPrice.value, maxPrice.value]
-  selectedCategory.value = undefined
+  minPrice.value = MIN_PRICE_VALUE
+  maxPrice.value = MAX_PRICE_VALUE
+  categoryId.value = undefined
 }
 
 function cancelFilters() {
   isDialogVisible.value = false
-  editableFilterOptions.value = { ...setFilterOptions.value }
-  priceValue.value = [editableFilterOptions.value.minPrice, editableFilterOptions.value.maxPrice]
-  selectedCategory.value = editableFilterOptions.value.categoryId
-}
 
-function showToast() {
-  toast.add({ severity: 'success', summary: 'Filters set', detail: 'Filter options updated successfully', life: 3000 })
+  minPrice.value = filterOptions.minPrice
+  maxPrice.value = filterOptions.maxPrice
+  categoryId.value = filterOptions.categoryId
 }
-
-const isApplyDisabled = computed(() => {
-  return JSON.stringify(editableFilterOptions.value) === JSON.stringify(setFilterOptions.value)
-})
 
 function applyFilters() {
-  setFilterOptions.value = { ...editableFilterOptions.value }
-  emit('filterOptionsChange', setFilterOptions.value)
   isDialogVisible.value = false
-  showToast()
+
+  const newFilterOptions: ItemFilterOptions = {
+    minPrice: minPrice.value,
+    maxPrice: maxPrice.value,
+    categoryId: categoryId.value,
+  }
+  emit('filterOptionsChange', newFilterOptions)
 }
 
+const priceRange = computed(() => [minPrice.value, maxPrice.value])
+
+function onPriceRangeChange(newRange: number | number[]) {
+  [minPrice.value, maxPrice.value] = newRange as [number, number]
+}
+
+const categories = ref<ItemCategory[]>([])
+const isFetchingCategories = ref(false)
+
 async function loadCategories() {
-  isLoading.value = true
+  isFetchingCategories.value = true
   try {
-    categories.value = await props.fetchCategories()
+    categories.value = await fetchCategories()
   }
   catch (error) {
     console.error(error)
   }
   finally {
-    isLoading.value = false
+    isFetchingCategories.value = false
   }
 }
 
@@ -91,7 +92,6 @@ watch(isDialogVisible, async (newVal) => {
 
 <template>
   <div class="flex justify-center">
-    <Toast />
     <Button label="Filters" @click="isDialogVisible = true" />
 
     <Dialog
@@ -101,16 +101,30 @@ watch(isDialogVisible, async (newVal) => {
       <div class="flex items-center gap-4 mb-4">
         <label for="price" class="font-semibold w-24">Price range</label>
         <div class="flex flex-col items-center w-56">
-          <span class="mb-2">{{ priceValue[0] }} - {{ priceValue[1] }}</span>
-          <Slider v-model="priceValue" :min="minPrice" :max="maxPrice" :step="10" range class="w-full" />
+          <span class="mb-2">{{ minPrice }} - {{ maxPrice }}</span>
+          <Slider
+            :model-value="priceRange"
+            :min="MIN_PRICE_VALUE"
+            :max="MAX_PRICE_VALUE"
+            :step="PRICE_SLIDER_STEP"
+            range
+            class="w-full"
+            @update:model-value="onPriceRangeChange"
+          />
         </div>
       </div>
 
       <div class="flex items-center gap-4 mb-8">
         <label for="category" class="font-semibold w-24">Category</label>
         <Select
-          v-model="selectedCategory" :options="categories" show-clear option-label="name"
-          :placeholder="isLoading ? 'Loading...' : 'Select Category'" class="w-full md:w-56" :disabled="isLoading" :loading="isLoading"
+          v-model="categoryId"
+          show-clear
+          option-label="name"
+          class="w-full md:w-56"
+          :options="categories"
+          :placeholder="isFetchingCategories ? 'Loading...' : 'Select Category'"
+          :disabled="isFetchingCategories"
+          :loading="isFetchingCategories"
         />
       </div>
 
@@ -119,7 +133,7 @@ watch(isDialogVisible, async (newVal) => {
 
         <div class="flex gap-2">
           <Button type="button" label="Cancel" severity="danger" @click="cancelFilters" />
-          <Button type="button" label="Apply" :disabled="isApplyDisabled" @click="applyFilters" />
+          <Button type="button" label="Apply" :disabled="!hasChanges" @click="applyFilters" />
         </div>
       </div>
     </Dialog>
