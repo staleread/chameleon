@@ -9,6 +9,9 @@ const mockCategories: ItemCategory[] = [
 ]
 
 export function getAllCategories(): Promise<ItemCategory[]> {
-  // return mock categories after a delay
-  return new Promise(res => setTimeout(() => res(mockCategories), DELAY))
+  return new Promise((res, rej) => setTimeout(() => {
+    Math.random() < 0.7
+      ? res(mockCategories)
+      : rej(new Error('Server is down'))
+  }, DELAY))
 }
