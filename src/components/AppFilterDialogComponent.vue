@@ -5,6 +5,7 @@ import Dialog from 'primevue/dialog'
 import Select from 'primevue/select'
 import Slider from 'primevue/slider'
 import { computed, ref, watch } from 'vue'
+import useLazyLoading from '../composables/useLazyLoading'
 
 const { filterOptions, fetchCategories } = defineProps<{
   filterOptions: ItemFilterOptions
@@ -13,6 +14,7 @@ const { filterOptions, fetchCategories } = defineProps<{
 
 const emit = defineEmits<{
   (e: 'filterOptionsChange', newOptions: ItemFilterOptions): void
+  (e: 'fetchCategoriesFail'): void
 }>()
 
 const MIN_PRICE_VALUE = 1
@@ -20,6 +22,28 @@ const MAX_PRICE_VALUE = 10000
 const PRICE_SLIDER_STEP = 10
 
 const isDialogVisible = ref(false)
+
+const canLoadCaterories = ref(false)
+const categories = ref<ItemCategory[]>([])
+
+watch(isDialogVisible, (value) => {
+  if (value) {
+    canLoadCaterories.value = true
+  }
+})
+
+async function loadCategories() {
+  if (canLoadCaterories.value) {
+    categories.value = await fetchCategories()
+  }
+}
+
+function onLoadCategoriesFailed() {
+  emit('fetchCategoriesFail')
+  isDialogVisible.value = false
+}
+
+const isLoading = useLazyLoading(loadCategories, onLoadCategoriesFailed)
 
 const hasChanges = ref(false)
 const minPrice = ref<number>(filterOptions.minPrice)
@@ -66,28 +90,6 @@ const priceRange = computed(() => [minPrice.value, maxPrice.value])
 function onPriceRangeChange(newRange: number | number[]) {
   [minPrice.value, maxPrice.value] = newRange as [number, number]
 }
-
-const categories = ref<ItemCategory[]>([])
-const isFetchingCategories = ref(false)
-
-async function loadCategories() {
-  isFetchingCategories.value = true
-  try {
-    categories.value = await fetchCategories()
-  }
-  catch (error) {
-    console.error(error)
-  }
-  finally {
-    isFetchingCategories.value = false
-  }
-}
-
-watch(isDialogVisible, async (newVal) => {
-  if (newVal && categories.value.length === 0) {
-    await loadCategories()
-  }
-})
 </script>
 
 <template>
@@ -122,9 +124,9 @@ watch(isDialogVisible, async (newVal) => {
           option-label="name"
           class="w-full md:w-56"
           :options="categories"
-          :placeholder="isFetchingCategories ? 'Loading...' : 'Select Category'"
-          :disabled="isFetchingCategories"
-          :loading="isFetchingCategories"
+          :placeholder="isLoading ? 'Loading...' : 'Select Category'"
+          :disabled="isLoading"
+          :loading="isLoading"
         />
       </div>
 

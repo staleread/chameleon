@@ -8,15 +8,6 @@ import { getAllCategories } from './api/category.api'
 
 const toast = useToast()
 
-function showToast() {
-  toast.add({
-    severity: 'success',
-    summary: 'Filters set',
-    detail: 'Filter options updated successfully',
-    life: 3000,
-  })
-}
-
 const filterOptions = ref<ItemFilterOptions>({
   minPrice: 4,
   maxPrice: 5000,
@@ -25,7 +16,21 @@ const filterOptions = ref<ItemFilterOptions>({
 
 function onFilterOptionsChange(newOptions: ItemFilterOptions) {
   filterOptions.value = { ...newOptions }
-  showToast()
+  toast.add({
+    severity: 'success',
+    summary: 'Filters set',
+    detail: 'Filter options updated successfully',
+    life: 3000,
+  })
+}
+
+function onFetchCategoriesFailed() {
+  toast.add({
+    severity: 'error',
+    summary: 'Oops...',
+    detail: 'Failed to fetch the caterories',
+    life: 3000,
+  })
 }
 </script>
 
@@ -36,6 +41,7 @@ function onFilterOptionsChange(newOptions: ItemFilterOptions) {
       :filter-options="filterOptions"
       :fetch-categories="getAllCategories"
       @filter-options-change="onFilterOptionsChange"
+      @fetch-categories-fail="onFetchCategoriesFailed"
     />
   </div>
 </template>
