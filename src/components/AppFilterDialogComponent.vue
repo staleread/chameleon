@@ -41,6 +41,7 @@ async function loadCategories() {
 function onLoadCategoriesFailed() {
   emit('fetchCategoriesFail')
   isDialogVisible.value = false
+  canLoadCaterories.value = false
 }
 
 const isLoading = useLazyLoading(loadCategories, onLoadCategoriesFailed)
