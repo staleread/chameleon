@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ItemSuggestion } from '../types/model.types'
-import { defineProps } from 'vue'
 
 defineProps<{ item: ItemSuggestion }>()
 </script>
