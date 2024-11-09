@@ -4,6 +4,7 @@ import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
 import { ref } from 'vue'
 import AppFilterDialogComponent from '../src/components/AppFilterDialogComponent.vue'
+import AppItemSearchInput from '../src/components/AppItemSearchInput.vue'
 import { getAllCategories } from './api/category.api'
 
 const toast = useToast()
@@ -43,5 +44,6 @@ function onFetchCategoriesFailed() {
       @filter-options-change="onFilterOptionsChange"
       @fetch-categories-fail="onFetchCategoriesFailed"
     />
+    <AppItemSearchInput />
   </div>
 </template>
