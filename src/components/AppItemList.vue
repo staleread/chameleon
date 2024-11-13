@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Item } from '../types/model.types'
 import AppItemCard from './AppItemCard.vue'
-import AppItemCardSkeleton from './ItemCardSkeleton.vue'
+import AppItemCardSkeleton from './AppItemCardSkeleton.vue'
 
 const props = defineProps<{
   items: Item[]
@@ -14,22 +14,20 @@ defineEmits<{
   (e: 'itemAddToCart', itemId: number): void
 }>()
 
-const skeletonCount = 12 // Відповідає itemsPerPage
+const SKELETON_COUNT = 12
 </script>
 
 <template>
   <div class="grid grid-cols-12 gap-4">
-    <!-- Якщо завантажується, відображаємо скелетони -->
     <template v-if="props.isLoading">
       <div
-        v-for="index in skeletonCount"
+        v-for="index in SKELETON_COUNT"
         :key="`skeleton-${index}`"
         class="col-span-12 sm:col-span-6 md:col-span-4 xl:col-span-3 p-2"
       >
         <AppItemCardSkeleton />
       </div>
     </template>
-    <!-- Якщо не завантажується, відображаємо товари -->
     <template v-else>
       <div
         v-for="item in props.items"

@@ -1,80 +1,56 @@
-<script lang="ts">
-import { computed, defineComponent } from 'vue'
+<script setup lang="ts">
+import Button from 'primevue/button'
+import { computed } from 'vue'
 
-export default defineComponent({
-  name: 'AppPaginator',
-  props: {
-    pageNumber: {
-      type: Number,
-      required: true,
-    },
-    hasNext: {
-      type: Boolean,
-      required: true,
-    },
-  },
-  emits: {
-    pageChange: (_newPageNumber: number) => true,
-  },
-  setup(props, { emit }) {
-    const isPreviousDisabled = computed(() => props.pageNumber <= 1)
-    const isNextDisabled = computed(() => !props.hasNext)
+const props = defineProps<{
+  pageNumber: number
+  hasNext: boolean
+}>()
 
-    const shouldShow = computed(
-      () => !(props.pageNumber === 1 && !props.hasNext),
-    )
+const emit = defineEmits<{
+  pageChange: [newPageNumber: number]
+}>()
 
-    const goToPreviousPage = () => {
-      if (!isPreviousDisabled.value) {
-        emit('pageChange', props.pageNumber - 1)
-      }
-    }
+const isPreviousDisabled = computed(() => props.pageNumber <= 1)
+const isNextDisabled = computed(() => !props.hasNext)
+const shouldShow = computed(() => !(props.pageNumber === 1 && !props.hasNext))
 
-    const goToNextPage = () => {
-      if (!isNextDisabled.value) {
-        emit('pageChange', props.pageNumber + 1)
-      }
-    }
+function goToPreviousPage() {
+  if (!isPreviousDisabled.value) {
+    emit('pageChange', props.pageNumber - 1)
+  }
+}
 
-    return {
-      isPreviousDisabled,
-      isNextDisabled,
-      shouldShow,
-      goToPreviousPage,
-      goToNextPage,
-    }
-  },
-})
+function goToNextPage() {
+  if (!isNextDisabled.value) {
+    emit('pageChange', props.pageNumber + 1)
+  }
+}
 </script>
 
 <template>
   <div v-if="shouldShow" class="flex justify-center my-4">
     <div class="flex space-x-2 bg-gray-100 rounded p-2">
-      <button
-        type="button"
-        class="px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50"
+      <Button
+        icon="pi pi-chevron-left"
         :disabled="isPreviousDisabled"
+        severity="secondary"
         @click="goToPreviousPage"
-      >
-        «
-      </button>
+      />
 
-      <button
-        type="button"
-        class="px-4 py-2 bg-gray-300 text-gray-700 rounded"
+      <Button
+        :label="`Сторінка ${pageNumber}`"
         disabled
-      >
-        Сторінка {{ pageNumber }}
-      </button>
+        severity="secondary"
+        text
+      />
 
-      <button
-        type="button"
-        class="px-4 py-2 bg-gray-500 text-white rounded disabled:opacity-50"
+      <Button
+        icon="pi pi-chevron-right"
         :disabled="isNextDisabled"
+        severity="secondary"
         @click="goToNextPage"
-      >
-        »
-      </button>
+      />
     </div>
   </div>
 </template>
