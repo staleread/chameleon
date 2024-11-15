@@ -1,340 +1,64 @@
-import type { Item } from '../types/model.types'
+import type { ItemDto } from '@/types/dto.types'
+import type { Item, ItemFilterOptions, WishListEntry } from '@/types/model.types'
+import type { Paginated } from '@/types/pagination.types'
+import config from '@/config'
+import { getWishListEntries } from '@/storage/wish-list.storage'
+import axios from 'axios'
 
-const DELAY = 1000 // Затримка в мілісекундах
+export async function getPaginatedItems(
+  page: number,
+  itemsPerPage: number,
+  filterOptions: ItemFilterOptions,
+): Promise<Paginated<Item>> {
+  if (itemsPerPage <= 0) {
+    throw new Error('Items per page must be greater than 0')
+  }
 
-export function getAllItems(page: number, itemsPerPage: number): Promise<{ items: Item[], hasNext: boolean }> {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const startIndex = (page - 1) * itemsPerPage
-      const endIndex = startIndex + itemsPerPage
-      // eslint-disable-next-line ts/no-use-before-define
-      const paginatedItems = items.slice(startIndex, endIndex)
-      // eslint-disable-next-line ts/no-use-before-define
-      const hasNext = endIndex < items.length
-      resolve({ items: paginatedItems, hasNext })
-    }, DELAY)
-  })
+  let paginatedData = await fetchPaginatedItems(page, itemsPerPage, filterOptions)
+
+  if (paginatedData.items.length > 0) {
+    return { ...paginatedData, items: toItems(paginatedData.items) }
+  }
+
+  paginatedData = await fetchPaginatedItems(0, itemsPerPage, filterOptions)
+  return { ...paginatedData, items: toItems(paginatedData.items) }
 }
 
-const items: Item[] = [
-  {
-    id: 1,
-    isWished: false,
-    title: 'Product 1',
-    price: 29.99,
-    categoryName: 'Electronics',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 2,
-    isWished: false,
-    title: 'Product 2',
-    price: 59.99,
-    categoryName: 'Books',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 3,
-    isWished: true,
-    title: 'Product 3',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 4,
-    isWished: true,
-    title: 'Product 4',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 5,
-    isWished: false,
-    title: 'Product e546',
-    price: 29.99,
-    categoryName: 'Electronics',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 2,
-    isWished: false,
-    title: 'Product 2',
-    price: 59.99,
-    categoryName: 'Books',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 3,
-    isWished: true,
-    title: 'Product 3',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 4,
-    isWished: true,
-    title: 'Product 4',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 1,
-    isWished: false,
-    title: 'Product 1',
-    price: 29.99,
-    categoryName: 'Electronics',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 2,
-    isWished: false,
-    title: 'Product 2',
-    price: 59.99,
-    categoryName: 'Books',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 3,
-    isWished: true,
-    title: 'Product 3',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 4,
-    isWished: true,
-    title: 'Product 4',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 1,
-    isWished: false,
-    title: 'Product 1',
-    price: 29.99,
-    categoryName: 'Electronics',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 2,
-    isWished: false,
-    title: 'Product 2',
-    price: 59.99,
-    categoryName: 'Books',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 3,
-    isWished: true,
-    title: 'Product 3',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 4,
-    isWished: true,
-    title: 'Product 4',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 1,
-    isWished: false,
-    title: 'Product 1',
-    price: 29.99,
-    categoryName: 'Electronics',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 2,
-    isWished: false,
-    title: 'Product 2',
-    price: 59.99,
-    categoryName: 'Books',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 3,
-    isWished: true,
-    title: 'Product 3',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 4,
-    isWished: true,
-    title: 'Product 4',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 1,
-    isWished: false,
-    title: 'Product 1',
-    price: 29.99,
-    categoryName: 'Electronics',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 2,
-    isWished: false,
-    title: 'Product 2',
-    price: 59.99,
-    categoryName: 'Books',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 3,
-    isWished: true,
-    title: 'Product 3',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 4,
-    isWished: true,
-    title: 'Product 4',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 1,
-    isWished: false,
-    title: 'Product 1',
-    price: 29.99,
-    categoryName: 'Electronics',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 2,
-    isWished: false,
-    title: 'Product 2',
-    price: 59.99,
-    categoryName: 'Books',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 3,
-    isWished: true,
-    title: 'Product 3',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 4,
-    isWished: true,
-    title: 'Product 4',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 1,
-    isWished: false,
-    title: 'Product 1',
-    price: 29.99,
-    categoryName: 'Electronics',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 2,
-    isWished: false,
-    title: 'Product 2',
-    price: 59.99,
-    categoryName: 'Books',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 3,
-    isWished: true,
-    title: 'Product 3',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 4,
-    isWished: true,
-    title: 'Product 4',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 1,
-    isWished: false,
-    title: 'Product 1',
-    price: 29.99,
-    categoryName: 'Electronics',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 2,
-    isWished: false,
-    title: 'Product 2',
-    price: 59.99,
-    categoryName: 'Books',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 3,
-    isWished: true,
-    title: 'Product 3',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 4,
-    isWished: true,
-    title: 'Product 4',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 1,
-    isWished: false,
-    title: 'Product 1',
-    price: 29.99,
-    categoryName: 'Electronics',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 2,
-    isWished: false,
-    title: 'Product 2',
-    price: 59.99,
-    categoryName: 'Books',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 3,
-    isWished: true,
-    title: 'Product 3',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-  {
-    id: 4,
-    isWished: true,
-    title: 'Product 4',
-    price: 19.99,
-    categoryName: 'Home',
-    imageUrl: 'https://mobilis-outsourcing.com.ua/wp-content/uploads/2020/05/%D0%B4%D0%BE%D1%81%D1%82%D0%B0%D0%B2%D0%B8%D1%82%D1%8C-%D1%82%D0%BE%D0%B2%D0%B0%D1%80-%D0%B8%D0%B7-%D0%9A%D0%B8%D1%82%D0%B0%D1%8F.jpg',
-  },
-]
+async function fetchPaginatedItems(
+  page: number,
+  itemsPerPage: number,
+  filterOptions: ItemFilterOptions,
+): Promise<Paginated<ItemDto>> {
+  const offset = (page - 1) * itemsPerPage
+  const limit = itemsPerPage + 1 // +1 for next page availability check
+
+  const response = await axios.get(`${config.api.baseUrl}/products`, {
+    params: {
+      offset,
+      limit,
+      categoryId: filterOptions.categoryId,
+      price_min: filterOptions.minPrice,
+      price_max: filterOptions.maxPrice,
+    },
+  })
+
+  const data = response.data
+  const hasNext = data.length > itemsPerPage
+
+  return { items: data.slice(0, itemsPerPage), hasNext, pageNumber: page }
+}
+
+function toItems(data: ItemDto[]): Item[] {
+  const wishSet = new Set(getWishListEntries().map((e: WishListEntry) => e.itemId))
+
+  const items = data.map((dto: ItemDto) => ({
+    id: dto.id,
+    title: dto.title,
+    price: dto.price,
+    categoryName: dto.category.name,
+    imageUrl: dto.images[0],
+    isWished: wishSet.has(dto.id),
+  }))
+
+  return items
+}
