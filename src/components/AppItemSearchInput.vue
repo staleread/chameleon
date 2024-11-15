@@ -2,7 +2,7 @@
 import type { ItemSuggestion } from '../types/model.types'
 import AutoComplete from 'primevue/autocomplete'
 import { ref } from 'vue'
-import { getItemSuggestions } from '../api/item.api.ts'
+import { getItemSuggestions } from '../api/suggestion.api.ts'
 import AppItemSearchEntry from '../components/AppItemSearchEntry.vue'
 
 const MIN_QUERY_LENGTH = 4

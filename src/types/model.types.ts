@@ -14,3 +14,22 @@ export interface ItemSuggestion {
   title: string
   categoryName: string
 }
+
+export interface CartEntry {
+  itemId: number
+  amount: number
+}
+
+export interface WishListEntry {
+  itemId: number
+}
+
+export interface CartItem {
+  id: number
+  isWished: boolean
+  title: string
+  price: number
+  categoryName: string
+  imageUrl: string
+  amount: number
+}
