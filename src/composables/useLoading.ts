@@ -6,7 +6,7 @@ interface FetchOptions {
   onError: () => void
 }
 
-export default function useFetch(
+export default function useLoading(
   options: FetchOptions,
 ): Ref<boolean> {
   const isLoading = ref(false)
