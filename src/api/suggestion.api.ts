@@ -1,19 +1,20 @@
-import type { ItemSuggestion } from '../types/model.types'
+import type { ItemDto } from '@/types/dto.types'
+import type { ItemSuggestion } from '@/types/model.types'
+import config from '@/config'
 import axios from 'axios'
 
 export async function getItemSuggestions(searchString: string): Promise<ItemSuggestion[]> {
-  try {
-    const response = await axios.get('https://api.escuelajs.co/api/v1/products', {
-      params: { title: searchString },
-    })
-    return response.data.map((item: any) => ({
-      id: item.id,
-      title: item.title,
-      categoryName: item.category ? item.category.name : 'Unknown category',
-    }))
-  }
-  catch (error) {
-    console.error(error)
-    return []
-  }
+  const response = await axios.get(`${config.api.baseUrl}/products`, {
+    params: { title: searchString },
+  })
+
+  const data: ItemDto[] = response.data
+
+  const suggestions: ItemSuggestion[] = data.map((dto: ItemDto) => ({
+    id: dto.id,
+    title: dto.title,
+    categoryName: dto.category.name,
+  }))
+
+  return suggestions
 }

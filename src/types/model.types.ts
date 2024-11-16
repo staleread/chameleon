@@ -1,3 +1,12 @@
+export interface Item {
+  id: number
+  isWished: boolean
+  title: string
+  price: number
+  categoryName: string
+  imageUrl: string
+}
+
 export interface ItemFilterOptions {
   minPrice: number
   maxPrice: number
@@ -26,7 +35,6 @@ export interface WishListEntry {
 
 export interface CartItem {
   id: number
-  isWished: boolean
   title: string
   price: number
   categoryName: string

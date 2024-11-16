@@ -5,11 +5,13 @@ import Dialog from 'primevue/dialog'
 import Select from 'primevue/select'
 import Slider from 'primevue/slider'
 import { computed, ref, watch } from 'vue'
-import useLazyLoading from '../composables/useLazyLoading'
+import useLoading from '../composables/useLoading'
 
-const { filterOptions, fetchCategories } = defineProps<{
+const { filterOptions, fetchCategories, minPrice, maxPrice } = defineProps<{
   filterOptions: ItemFilterOptions
   fetchCategories: () => Promise<ItemCategory[]>
+  minPrice: number
+  maxPrice: number
 }>()
 
 const emit = defineEmits<{
@@ -17,41 +19,38 @@ const emit = defineEmits<{
   (e: 'fetchCategoriesFail'): void
 }>()
 
-const MIN_PRICE_VALUE = 1
-const MAX_PRICE_VALUE = 10000
 const PRICE_SLIDER_STEP = 10
 
 const isDialogVisible = ref(false)
 
-const canLoadCaterories = ref(false)
+const canLoadCategories = ref(false)
 const categories = ref<ItemCategory[]>([])
 
 watch(isDialogVisible, (value) => {
   if (value) {
-    canLoadCaterories.value = true
+    canLoadCategories.value = true
   }
 })
 
-async function loadCategories() {
-  if (canLoadCaterories.value) {
-    categories.value = await fetchCategories()
-  }
-}
-
-function onLoadCategoriesFailed() {
-  emit('fetchCategoriesFail')
-  isDialogVisible.value = false
-  canLoadCaterories.value = false
-}
-
-const isLoading = useLazyLoading(loadCategories, onLoadCategoriesFailed)
+const isLoading = useLoading({
+  watcher: async () => {
+    if (canLoadCategories.value) {
+      categories.value = await fetchCategories()
+    }
+  },
+  onError: () => {
+    emit('fetchCategoriesFail')
+    isDialogVisible.value = false
+    canLoadCategories.value = false
+  },
+})
 
 const hasChanges = ref(false)
-const minPrice = ref<number>(filterOptions.minPrice)
-const maxPrice = ref<number>(filterOptions.maxPrice)
-const categoryId = ref<number | undefined>(filterOptions.categoryId)
+const lowPrice = ref<number>(filterOptions.minPrice)
+const highPrice = ref<number>(filterOptions.maxPrice)
+const category = ref<ItemCategory | undefined>(undefined)
 
-watch([minPrice, maxPrice, categoryId], () => {
+watch([lowPrice, highPrice, category], () => {
   hasChanges.value = true
 })
 
@@ -62,34 +61,34 @@ watch(isDialogVisible, (value: boolean) => {
 })
 
 function resetFilters() {
-  minPrice.value = MIN_PRICE_VALUE
-  maxPrice.value = MAX_PRICE_VALUE
-  categoryId.value = undefined
+  lowPrice.value = minPrice
+  highPrice.value = maxPrice
+  category.value = undefined
 }
 
 function cancelFilters() {
   isDialogVisible.value = false
 
-  minPrice.value = filterOptions.minPrice
-  maxPrice.value = filterOptions.maxPrice
-  categoryId.value = filterOptions.categoryId
+  lowPrice.value = filterOptions.minPrice
+  highPrice.value = filterOptions.maxPrice
+  category.value = categories.value.find(c => c.id === filterOptions.categoryId)
 }
 
 function applyFilters() {
   isDialogVisible.value = false
 
   const newFilterOptions: ItemFilterOptions = {
-    minPrice: minPrice.value,
-    maxPrice: maxPrice.value,
-    categoryId: categoryId.value,
+    minPrice: lowPrice.value,
+    maxPrice: highPrice.value,
+    categoryId: category.value?.id,
   }
   emit('filterOptionsChange', newFilterOptions)
 }
 
-const priceRange = computed(() => [minPrice.value, maxPrice.value])
+const priceRange = computed(() => [lowPrice.value, highPrice.value])
 
 function onPriceRangeChange(newRange: number | number[]) {
-  [minPrice.value, maxPrice.value] = newRange as [number, number]
+  [lowPrice.value, highPrice.value] = newRange as [number, number]
 }
 </script>
 
@@ -104,11 +103,11 @@ function onPriceRangeChange(newRange: number | number[]) {
       <div class="flex items-center gap-4 mb-4">
         <label for="price" class="font-semibold w-24">Price range</label>
         <div class="flex flex-col items-center w-56">
-          <span class="mb-2">{{ minPrice }} - {{ maxPrice }}</span>
+          <span class="mb-2">{{ lowPrice }} - {{ highPrice }}</span>
           <Slider
             :model-value="priceRange"
-            :min="MIN_PRICE_VALUE"
-            :max="MAX_PRICE_VALUE"
+            :min="minPrice"
+            :max="maxPrice"
             :step="PRICE_SLIDER_STEP"
             range
             class="w-full"
@@ -120,7 +119,7 @@ function onPriceRangeChange(newRange: number | number[]) {
       <div class="flex items-center gap-4 mb-8">
         <label for="category" class="font-semibold w-24">Category</label>
         <Select
-          v-model="categoryId"
+          v-model="category"
           show-clear
           option-label="name"
           class="w-full md:w-56"
