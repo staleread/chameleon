@@ -62,3 +62,24 @@ function toItems(data: ItemDto[]): Item[] {
 
   return items
 }
+
+export async function getWishedItems(): Promise<Item[]> {
+  const wishListEntries: WishListEntry[] = getWishListEntries()
+  const itemIds = wishListEntries.map(entry => entry.itemId)
+
+  const items = await Promise.all(
+    itemIds.map(async (id) => {
+      try {
+        const response = await axios.get<ItemDto>(`${config.api.baseUrl}/products/${id}`)
+        return response.data
+      }
+      catch (error) {
+        console.error(`Помилка завантаження товару з ID: ${id}`, error)
+        return null
+      }
+    }),
+  )
+
+  const validItems = items.filter(item => item !== null) as ItemDto[]
+  return toItems(validItems)
+}
