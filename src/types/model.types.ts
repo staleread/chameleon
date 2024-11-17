@@ -7,6 +7,11 @@ export interface Item {
   imageUrl: string
 }
 
+export interface CartInfo {
+  total: number;
+  items: CartItem[]; // Вже визначено
+}
+
 export interface ItemFilterOptions {
   minPrice: number
   maxPrice: number
