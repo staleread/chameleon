@@ -6,10 +6,10 @@ import AppWishList from '@/views/AppWishList.vue'
 import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
-  { path: '/', component: AppCatalog },
-  { path: '/cart', component: AppCart },
-  { path: '/item/:id', component: AppItemPage },
-  { path: '/wish-list', component: AppWishList },
+  { path: '/chameleon/', component: AppCatalog },
+  { path: '/chameleon/cart', component: AppCart },
+  { path: '/chameleon/item/:id', component: AppItemPage },
+  { path: '/chameleon/wish-list', component: AppWishList },
   { path: '/:pathMatch(.*)*', component: AppNotFound },
 ]
 

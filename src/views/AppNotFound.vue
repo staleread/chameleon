@@ -21,7 +21,7 @@ const router = useRouter()
         label="Go to Catalog"
         icon="pi pi-shopping-bag"
         severity="primary"
-        @click="router.push('/')"
+        @click="router.push('/chameleon/')"
       />
     </div>
   </div>

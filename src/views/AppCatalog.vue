@@ -63,11 +63,11 @@ async function search({ query }: { query: string }) {
 }
 
 function handleSearchOptionSelected({ value }: AutoCompleteOptionSelectEvent) {
-  router.push(`/item/${value.id}`)
+  router.push(`/chameleon/item/${value.id}`)
 }
 
 function handleItemClick(itemId: number) {
-  router.push(`/item/${itemId}`)
+  router.push(`/chameleon/item/${itemId}`)
 }
 
 function handleItemWishStatusChange(itemId: number, isWish: boolean) {

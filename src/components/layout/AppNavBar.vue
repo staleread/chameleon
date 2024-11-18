@@ -12,24 +12,24 @@ const items = ref<MenuItem[]>([
     label: 'Catalog',
     icon: 'pi pi-shopping-bag',
     command: () => {
-      router.push('/')
-      activeRoute.value = '/'
+      router.push('/chameleon/')
+      activeRoute.value = '/chameleon/'
     },
   },
   {
     label: 'Cart',
     icon: 'pi pi-shopping-cart',
     command: () => {
-      router.push('/cart')
-      activeRoute.value = '/cart'
+      router.push('/chameleon/cart')
+      activeRoute.value = '/chameleon/cart'
     },
   },
   {
     label: 'Wish List',
     icon: 'pi pi-heart',
     command: () => {
-      router.push('/wish-list')
-      activeRoute.value = '/wish-list'
+      router.push('/chameleon/wish-list')
+      activeRoute.value = '/chameleon/wish-list'
     },
   },
 ])
