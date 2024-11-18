@@ -11,7 +11,7 @@ defineEmits<{
 </script>
 
 <template>
-  <div class="flex justify-between items-center mt-4 p-4 border-t">
+  <div class="flex justify-between items-center mt-4 p-4">
     <div class="text-xl font-semibold">
       Загальна сума: ${{ total.toFixed(2) }}
     </div>
