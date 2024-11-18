@@ -1,35 +1,32 @@
-<!-- WishListPage.vue -->
 <script setup lang="ts">
 import type { Item } from '@/types/model.types'
 import { getWishedItems } from '@/api/item.api'
 import AppItemList from '@/components/AppItemList.vue'
+import useLoading from '@/composables/useLoading'
 import router from '@/router/router'
 import { addItemToCart } from '@/storage/cart.storage'
 import { addItemToWishList, removeItemFromWishList } from '@/storage/wish-list.storage'
 import Button from 'primevue/button'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 
-const isLoading = ref(true)
 const wishListItems = ref<Item[]>([])
 const toast = useToast()
 
-async function loadWishListItems() {
-  try {
+const isLoading = useLoading({
+  watcher: async () => {
     const items = await getWishedItems()
     wishListItems.value = items
-  }
-  catch (error) {
-    console.error('Помилка завантаження товарів із Wish List:', error)
-  }
-  finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(() => {
-  loadWishListItems()
+  },
+  onError: () => {
+    toast.add({
+      summary: 'Oops...',
+      detail: 'Error loading wishlist',
+      severity: 'error',
+      life: 3000,
+    })
+  },
 })
 
 function handleItemClick(itemId: number) {
@@ -37,11 +34,22 @@ function handleItemClick(itemId: number) {
 }
 
 function handleItemWishStatusChange(itemId: number, isWish: boolean) {
-  isWish ? addItemToWishList(itemId) : removeItemFromWishList(itemId)
   const item = wishListItems.value.find((i: Item) => i.id === itemId)
-  if (item) {
-    item.isWished = isWish
+
+  if (!item) {
+    return
   }
+
+  if (isWish) {
+    addItemToWishList(itemId)
+    item.isWished = true
+  }
+  else {
+    removeItemFromWishList(itemId)
+    wishListItems.value = wishListItems.value.filter((i: Item) => i.id !== itemId)
+    item.isWished = false
+  }
+
   toast.add({
     summary: 'Wishlist',
     detail: isWish ? 'Added to wishlist' : 'Removed from wishlist',
