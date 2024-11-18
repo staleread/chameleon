@@ -55,6 +55,7 @@ function toItems(data: ItemDto[]): Item[] {
     id: dto.id,
     title: dto.title,
     price: dto.price,
+    // description: dto.description,
     categoryName: dto.category.name,
     imageUrl: dto.images[0],
     isWished: wishSet.has(dto.id),
@@ -82,4 +83,16 @@ export async function getWishedItems(): Promise<Item[]> {
 
   const validItems = items.filter(item => item !== null) as ItemDto[]
   return toItems(validItems)
+}
+
+export async function getItemById(itemId: string): Promise<Item | null> {
+  const response = await axios.get<ItemDto>(`${config.api.baseUrl}/products/${itemId}`)
+  if (response.status === 200) {
+    const itemDto = response.data
+    const items = toItems([itemDto])
+    return items[0] || null
+  }
+  else {
+    throw new Error('Cand load item')
+  }
 }
