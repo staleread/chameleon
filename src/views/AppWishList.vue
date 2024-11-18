@@ -30,7 +30,7 @@ const isLoading = useLoading({
 })
 
 function handleItemClick(itemId: number) {
-  router.push(`/item/${itemId}`)
+  router.push(`/chameleon/item/${itemId}`)
 }
 
 function handleItemWishStatusChange(itemId: number, isWish: boolean) {
@@ -80,7 +80,7 @@ function handleItemAddToCart(itemId: number) {
         label="Go to Catalog"
         icon="pi pi-shopping-bag"
         severity="primary"
-        @click="router.push('/')"
+        @click="router.push('/chameleon/')"
       />
     </div>
     <div v-else>
