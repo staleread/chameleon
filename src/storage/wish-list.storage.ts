@@ -1,6 +1,11 @@
 import type { WishListEntry } from '@/types/model.types'
 import config from '@/config'
 
+export function isItemInWishList(itemId: number): boolean {
+  const wishList = getWishListEntries()
+  return wishList.some((e: WishListEntry) => e.itemId === itemId)
+}
+
 export function addItemToWishList(itemId: number) {
   const wishList = getWishListEntries()
 

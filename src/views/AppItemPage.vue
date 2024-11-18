@@ -1,38 +1,33 @@
 <script setup lang="ts">
 import type { Item } from '@/types/model.types'
-import { getItemById, getWishedItems } from '@/api/item.api'
+import { getWishedItemById } from '@/api/item.api'
 import AppAboutItemCard from '@/components/AppAboutItemCard.vue'
+import useLoading from '@/composables/useLoading'
 import { addItemToCart } from '@/storage/cart.storage'
 import { addItemToWishList, removeItemFromWishList } from '@/storage/wish-list.storage'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 
-const item = ref<Item | null>(null)
-const isLoading = ref(true)
 const route = useRoute()
 const toast = useToast()
-const wishListItems = ref<Item[]>([])
 
-async function loadWishListItems() {
-  try {
-    const items = await getWishedItems()
-    wishListItems.value = items
-  }
-  catch (error) {
-    console.error('Помилка завантаження товарів із Wish List:', error)
-  }
-  finally {
-    isLoading.value = false
-  }
-}
+const item = ref<Item | null>(null)
 
-onMounted(async () => {
-  const itemId = route.params.id as string
-  item.value = await getItemById(itemId)
-  isLoading.value = false
-  loadWishListItems()
+const isItemLoading = useLoading({
+  watcher: async () => {
+    const itemId = route.params.id as string
+    item.value = await getWishedItemById(Number.parseInt(itemId))
+  },
+  onError: () => {
+    toast.add({
+      summary: 'Oops...',
+      detail: 'Error loading item',
+      severity: 'error',
+      life: 3000,
+    })
+  },
 })
 
 function handleItemAddToCart(itemId: number) {
@@ -46,25 +41,12 @@ function handleItemAddToCart(itemId: number) {
 }
 
 function handleItemWishStatusChange(itemId: number, isWish: boolean) {
-  if (item.value) {
-    if (isWish) {
-      addItemToWishList(itemId)
-    }
-    else {
-      removeItemFromWishList(itemId)
-    }
-    const updatedItem = wishListItems.value.find((i: Item) => i.id === itemId)
-    if (updatedItem) {
-      item.value.isWished = isWish
-    }
-    else {
-      const itemToAdd = item.value
-      if (itemToAdd) {
-        wishListItems.value.push(itemToAdd)
-        itemToAdd.isWished = true
-      }
-    }
+  if (!item.value) {
+    return
   }
+
+  isWish ? addItemToWishList(itemId) : removeItemFromWishList(itemId)
+  item.value.isWished = isWish
 
   toast.add({
     summary: 'Wishlist',
@@ -78,7 +60,7 @@ function handleItemWishStatusChange(itemId: number, isWish: boolean) {
 <template>
   <Toast />
   <div class="flex flex-col items-center justify-center min-h-[80vh] gap-6">
-    <div v-if="isLoading" class="text-xl font-bold mb-6">
+    <div v-if="isItemLoading" class="text-xl font-bold mb-6">
       Loading...
     </div>
 

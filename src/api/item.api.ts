@@ -1,9 +1,22 @@
 import type { ItemDto } from '@/types/dto.types'
-import type { Item, ItemFilterOptions, WishListEntry } from '@/types/model.types'
+import type { Item, ItemBase, ItemFilterOptions, WishListEntry } from '@/types/model.types'
 import type { Paginated } from '@/types/pagination.types'
 import config from '@/config'
-import { getWishListEntries } from '@/storage/wish-list.storage'
+import { getWishListEntries, isItemInWishList } from '@/storage/wish-list.storage'
 import axios from 'axios'
+
+export async function getItemById(itemId: number): Promise<ItemBase> {
+  const response = await axios.get(`${config.api.baseUrl}/products/${itemId}`)
+  const dto = response.data
+
+  return {
+    id: dto.id,
+    title: dto.title,
+    price: dto.price,
+    categoryName: dto.category.name,
+    imageUrl: dto.images[0],
+  }
+}
 
 export async function getPaginatedItems(
   page: number,
@@ -22,6 +35,30 @@ export async function getPaginatedItems(
 
   paginatedData = await fetchPaginatedItems(0, itemsPerPage, filterOptions)
   return { ...paginatedData, items: toItems(paginatedData.items) }
+}
+
+export async function getWishedItemById(itemId: number): Promise<Item> {
+  const item = await getItemById(itemId)
+  return { ...item, isWished: isItemInWishList(itemId) }
+}
+
+export async function getWishedItems(): Promise<Item[]> {
+  const wishListEntries: WishListEntry[] = getWishListEntries()
+
+  if (wishListEntries.length === 0) {
+    return []
+  }
+
+  const wishListPromises: Promise<Item>[] = wishListEntries.map(async (entry) => {
+    const item = await getItemById(entry.itemId)
+    return { ...item, isWished: true }
+  })
+
+  const wishedItems = (await Promise.allSettled(wishListPromises))
+    .filter(result => result.status === 'fulfilled')
+    .map(result => result.value)
+
+  return wishedItems
 }
 
 async function fetchPaginatedItems(
@@ -55,44 +92,10 @@ function toItems(data: ItemDto[]): Item[] {
     id: dto.id,
     title: dto.title,
     price: dto.price,
-    // description: dto.description,
     categoryName: dto.category.name,
     imageUrl: dto.images[0],
     isWished: wishSet.has(dto.id),
   }))
 
   return items
-}
-
-export async function getWishedItems(): Promise<Item[]> {
-  const wishListEntries: WishListEntry[] = getWishListEntries()
-  const itemIds = wishListEntries.map(entry => entry.itemId)
-
-  const items = await Promise.all(
-    itemIds.map(async (id) => {
-      try {
-        const response = await axios.get<ItemDto>(`${config.api.baseUrl}/products/${id}`)
-        return response.data
-      }
-      catch (error) {
-        console.error(`Помилка завантаження товару з ID: ${id}`, error)
-        return null
-      }
-    }),
-  )
-
-  const validItems = items.filter(item => item !== null) as ItemDto[]
-  return toItems(validItems)
-}
-
-export async function getItemById(itemId: string): Promise<Item | null> {
-  const response = await axios.get<ItemDto>(`${config.api.baseUrl}/products/${itemId}`)
-  if (response.status === 200) {
-    const itemDto = response.data
-    const items = toItems([itemDto])
-    return items[0] || null
-  }
-  else {
-    throw new Error('Cand load item')
-  }
 }
