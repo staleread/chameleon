@@ -141,7 +141,7 @@ onMounted(() => {
   <Toast />
   <div class="w-full flex justify-between">
     <AutoComplete
-      v-tooltip.hover="'At least 4 characters'"
+      v-tooltip.bottom.hover="'At least 4 characters'"
       force-selection
       placeholder="Search"
       option-label="title"
