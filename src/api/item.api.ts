@@ -1,7 +1,8 @@
 import type { ItemDto } from '@/types/dto.types'
-import type { Item, ItemBase, ItemFilterOptions, WishListEntry } from '@/types/model.types'
+import type { CartInfo, CartItem, Item, ItemBase, ItemFilterOptions, WishListEntry } from '@/types/model.types'
 import type { Paginated } from '@/types/pagination.types'
 import config from '@/config'
+import { getCartEntries } from '@/storage/cart.storage'
 import { getWishListEntries, isItemInWishList } from '@/storage/wish-list.storage'
 import axios from 'axios'
 
@@ -16,6 +17,30 @@ export async function getItemById(itemId: number): Promise<ItemBase> {
     categoryName: dto.category.name,
     imageUrl: dto.images[0],
   }
+}
+
+export async function getCartInfo(): Promise<CartInfo> {
+  const cartEntries = getCartEntries()
+
+  if (cartEntries.length === 0) {
+    return { total: 0, items: [] }
+  }
+
+  const cartItemPromises: Promise<CartItem>[] = cartEntries.map(async (entry) => {
+    const item = await getItemById(entry.itemId)
+    return { ...item, amount: entry.amount }
+  })
+  const cartItems: CartItem[] = (await Promise.allSettled(cartItemPromises))
+    .filter(result => result.status === 'fulfilled')
+    .map(result => result.value)
+
+  const total = calculateCartTotal(cartItems)
+
+  return { total, items: cartItems }
+}
+
+export function calculateCartTotal(cartItems: CartItem[]): number {
+  return cartItems.reduce((sum, item) => sum + item.price * item.amount, 0)
 }
 
 export async function getPaginatedItems(
