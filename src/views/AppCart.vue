@@ -1,32 +1,33 @@
 <script setup lang="ts">
 import type { CartItem } from '@/types/model.types'
-import { calculateTotal, getCartInfo } from '@/api/item.api'
+import { calculateCartTotal, getCartInfo } from '@/api/item.api'
 import AppCartItemList from '@/components/AppCartItemList.vue'
 import AppCartTotal from '@/components/AppCartTotal.vue'
+import useLoading from '@/composables/useLoading'
 import { addItemToCart, removeItemFromCart } from '@/storage/cart.storage'
 import Toast from 'primevue/toast'
-import { onMounted, ref } from 'vue'
+import { useToast } from 'primevue/usetoast'
+import { ref } from 'vue'
+
+const toast = useToast()
 
 const cartItems = ref<CartItem[]>([])
 const total = ref<number>(0)
-const isLoading = ref<boolean>(true)
 
-async function loadCartInfo() {
-  try {
+const isLoading = useLoading({
+  watcher: async () => {
     const cartInfo = await getCartInfo()
     cartItems.value = cartInfo.items
     total.value = cartInfo.total
-  }
-  catch (error) {
-    console.error('Помилка завантаження кошика:', error)
-  }
-  finally {
-    isLoading.value = false
-  }
-}
-
-onMounted(() => {
-  loadCartInfo()
+  },
+  onError: () => {
+    toast.add({
+      severity: 'error',
+      summary: 'Помилка',
+      detail: 'Помилка завантаження кошика',
+      life: 3000,
+    })
+  },
 })
 
 function onItemAmountChange(itemId: number, newAmount: number) {
@@ -48,14 +49,12 @@ function onItemAmountChange(itemId: number, newAmount: number) {
       cartItems.value[itemIndex].amount = newAmount
     }
 
-    total.value = calculateTotal(cartItems.value)
+    total.value = calculateCartTotal(cartItems.value)
   }
 }
 
-const toast = ref()
-
 function onCheckout() {
-  toast.value.add({
+  toast.add({
     severity: 'warn',
     summary: 'Увага',
     detail: 'Функція в розробці',
@@ -65,6 +64,7 @@ function onCheckout() {
 </script>
 
 <template>
+  <Toast />
   <div class="container mt-4">
     <h1>Кошик</h1>
     <AppCartItemList
@@ -72,7 +72,6 @@ function onCheckout() {
       :is-loading="isLoading"
       @item-amount-change="onItemAmountChange"
     />
-    <AppCartTotal :total="total" @checkout="onCheckout" />
-    <Toast ref="toast" />
+    <AppCartTotal v-if="!isLoading && cartItems.length > 0" :total="total" @checkout="onCheckout" />
   </div>
 </template>

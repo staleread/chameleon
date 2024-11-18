@@ -38,7 +38,9 @@ export function removeItemFromCart(itemId: number) {
 export function getCartEntries(): CartEntry[] {
   const cart = localStorage.getItem(config.storage.cart.localStorageKey)
 
-  return cart ? JSON.parse(cart) : []
+  const entries = cart ? JSON.parse(cart) : []
+
+  return entries.filter((e: CartEntry) => e.amount > 0)
 }
 
 function updateCart(cart: CartEntry[]) {

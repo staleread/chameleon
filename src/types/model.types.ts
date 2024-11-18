@@ -1,10 +1,17 @@
-export interface Item {
+export interface ItemBase {
   id: number
-  isWished: boolean
   title: string
   price: number
   categoryName: string
   imageUrl: string
+}
+
+export interface Item extends ItemBase {
+  isWished: boolean
+}
+
+export interface CartItem extends ItemBase {
+  amount: number
 }
 
 export interface ItemFilterOptions {
@@ -31,15 +38,6 @@ export interface CartEntry {
 
 export interface WishListEntry {
   itemId: number
-}
-
-export interface CartItem {
-  id: number
-  title: string
-  price: number
-  categoryName: string
-  imageUrl: string
-  amount: number
 }
 
 export interface CartInfo {

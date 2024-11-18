@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CartItem } from '@/types/model.types'
 import InputNumber from 'primevue/inputnumber'
-import { ref, watch } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps<{
   item: CartItem
@@ -11,22 +11,14 @@ const emit = defineEmits<{
   (e: 'amountChange', newAmount: number): void
 }>()
 
-const localAmount = ref<number>(props.item.amount)
-
-watch(
-  () => props.item.amount,
-  (newVal) => {
-    localAmount.value = newVal
-  },
-)
-
-function onAmountChange() {
-  emit('amountChange', localAmount.value)
-}
+const amount = computed({
+  get: () => props.item.amount || 0,
+  set: (value: number) => emit('amountChange', value),
+})
 </script>
 
 <template>
-  <div class="flex items-center p-4 border-b">
+  <div class="flex p-4 border-b sm:flex-row flex-col sm:items-center items-stretch gap-4">
     <img :src="item.imageUrl" alt="Зображення товару" class="w-20 h-20 object-cover mr-4">
 
     <div class="flex-1">
@@ -38,13 +30,20 @@ function onAmountChange() {
       </p>
     </div>
 
-    <div class="w-32">
+    <div class="w-full sm:w-auto">
       <InputNumber
-        v-model.number="localAmount"
+        v-model="amount"
         :min="0"
-        :show-buttons="true"
-        @change="onAmountChange"
-      />
+        show-buttons
+        button-layout="horizontal"
+      >
+        <template #incrementbuttonicon>
+          <span class="pi pi-plus" />
+        </template>
+        <template #decrementbuttonicon>
+          <span class="pi pi-minus" />
+        </template>
+      </InputNumber>
     </div>
   </div>
 </template>
