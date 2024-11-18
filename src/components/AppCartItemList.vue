@@ -1,3 +1,20 @@
+<script setup lang="ts">
+import type { CartItem } from '@/types/model.types'
+import AppCartItemCard from '@/components/AppCartItemCard.vue'
+import AppCartItemCardSkeleton from '@/components/AppCartItemCardSkeleton.vue'
+
+defineProps<{
+  items: CartItem[]
+  isLoading: boolean
+}>()
+
+defineEmits<{
+  (e: 'itemAmountChange', itemId: number, newAmount: number): void
+}>()
+
+const skeletonCount = 5
+</script>
+
 <template>
   <div>
     <template v-if="isLoading">
@@ -5,28 +22,11 @@
     </template>
     <template v-else>
       <AppCartItemCard
-          v-for="item in items"
-          :key="item.id"
-          :item="item"
-          @amount-change="(newAmount) => $emit('item-amount-change', item.id, newAmount)"
+        v-for="item in items"
+        :key="item.id"
+        :item="item"
+        @amount-change="(newAmount) => $emit('itemAmountChange', item.id, newAmount)"
       />
     </template>
   </div>
 </template>
-
-<script setup lang="ts">
-import AppCartItemCard from '@/components/AppCartItemCard.vue';
-import AppCartItemCardSkeleton from '@/components/AppCartItemCardSkeleton.vue';
-import type { CartItem } from '@/types/model.types';
-
-const props = defineProps<{
-  items: CartItem[];
-  isLoading: boolean;
-}>();
-
-const emit = defineEmits<{
-  (e: 'item-amount-change', itemId: number, newAmount: number): void;
-}>();
-
-const skeletonCount = 5;
-</script>

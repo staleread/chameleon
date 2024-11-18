@@ -1,7 +1,7 @@
+import AppCart from '@/views/AppCart.vue'
+import AppCatalog from '@/views/AppCatalog.vue'
+import AppNotFound from '@/views/AppNotFound.vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import AppCatalog from '../views/AppCatalog.vue'
-import AppNotFound from '../views/AppNotFound.vue'
-import AppCart from "@/views/AppCart.vue";
 
 const routes = [
   { path: '/', component: AppCatalog },

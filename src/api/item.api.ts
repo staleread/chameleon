@@ -1,51 +1,47 @@
 import type { ItemDto } from '@/types/dto.types'
-import type { Item, ItemFilterOptions, WishListEntry } from '@/types/model.types'
+import type { CartInfo, CartItem, Item, ItemFilterOptions, WishListEntry } from '@/types/model.types'
 import type { Paginated } from '@/types/pagination.types'
 import config from '@/config'
+
+import { getCartEntries } from '@/storage/cart.storage'
 import { getWishListEntries } from '@/storage/wish-list.storage'
 import axios from 'axios'
 
-import type { CartInfo, CartItem, Item } from '@/types/model.types';
-import { getCartEntries } from '@/storage/cart.storage';
-import { getWishListEntries } from '@/storage/wish-list.storage';
-import axios from 'axios';
-import config from '@/config';
-
 export async function getCartInfo(): Promise<CartInfo> {
-  const cartEntries = getCartEntries();
+  const cartEntries = getCartEntries()
 
   if (cartEntries.length === 0) {
-    return { total: 0, items: [] };
+    return { total: 0, items: [] }
   }
 
   // Отримуємо товари за ідентифікаторами
-  const itemPromises = cartEntries.map((entry) => getItemById(entry.itemId));
-  const items = await Promise.all(itemPromises);
+  const itemPromises = cartEntries.map(entry => getItemById(entry.itemId))
+  const items = await Promise.all(itemPromises)
 
   // Мапимо Item до CartItem та додаємо кількість
   const cartItems: CartItem[] = items.map((item) => {
-    const amount = cartEntries.find((entry) => entry.itemId === item.id)?.amount || 0;
+    const amount = cartEntries.find(entry => entry.itemId === item.id)?.amount || 0
     return {
       ...item,
       amount,
-    };
-  });
+    }
+  })
 
   // Обчислюємо загальну суму
-  const total = calculateTotal(cartItems);
+  const total = calculateTotal(cartItems)
 
-  return { total, items: cartItems };
+  return { total, items: cartItems }
 }
 
 export function calculateTotal(cartItems: CartItem[]): number {
-  return cartItems.reduce((sum, item) => sum + item.price * item.amount, 0);
+  return cartItems.reduce((sum, item) => sum + item.price * item.amount, 0)
 }
 
 export async function getItemById(itemId: number): Promise<Item> {
-  const response = await axios.get(`${config.api.baseUrl}/products/${itemId}`);
-  const dto = response.data;
+  const response = await axios.get(`${config.api.baseUrl}/products/${itemId}`)
+  const dto = response.data
 
-  const isWished = getWishListEntries().some((entry) => entry.itemId === dto.id);
+  const isWished = getWishListEntries().some(entry => entry.itemId === dto.id)
 
   return {
     id: dto.id,
@@ -54,9 +50,8 @@ export async function getItemById(itemId: number): Promise<Item> {
     categoryName: dto.category.name,
     imageUrl: dto.images[0],
     isWished,
-  };
+  }
 }
-
 
 export async function getPaginatedItems(
   page: number,
