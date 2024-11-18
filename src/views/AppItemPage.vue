@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Item } from '@/types/model.types'
 import { getItemById, getWishedItems } from '@/api/item.api'
-import AppItemCard from '@/components/AppAboutItemCard.vue'
+import AppAboutItemCard from '@/components/AppAboutItemCard.vue'
 import { addItemToCart } from '@/storage/cart.storage'
 import { addItemToWishList, removeItemFromWishList } from '@/storage/wish-list.storage'
 import Toast from 'primevue/toast'
@@ -83,7 +83,7 @@ function handleItemWishStatusChange(itemId: number, isWish: boolean) {
     </div>
 
     <div v-else-if="item">
-      <AppItemCard
+      <AppAboutItemCard
         :item="item"
         @item-wish-status-change="handleItemWishStatusChange(item.id, !item.isWished)"
         @item-add-to-cart="handleItemAddToCart(item.id)"
