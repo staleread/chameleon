@@ -14,8 +14,8 @@ import { addItemToWishList, removeItemFromWishList } from '@/storage/wish-list.s
 import AutoComplete from 'primevue/autocomplete'
 import Toast from 'primevue/toast'
 import { useToast } from 'primevue/usetoast'
-import { ref, toRaw, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref, toRaw, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 const ITEMS_PER_PAGE = 12
 const DEFAULT_PAGE_NUMBER = 1
@@ -26,6 +26,7 @@ const DEBOUNCE_DELAY = 300
 
 const toast = useToast()
 const router = useRouter()
+const route = useRoute()
 
 const items = ref<Item[]>([])
 const pageNumber = ref(DEFAULT_PAGE_NUMBER)
@@ -95,6 +96,7 @@ function handleItemAddToCart(itemId: number) {
 
 function handleFilterOptionsChange(newFilterOptions: ItemFilterOptions) {
   filterOptions.value = newFilterOptions
+  updateUrlQuery(newFilterOptions)
   toast.add({
     summary: 'Filter',
     detail: 'Filter options changed',
@@ -103,8 +105,35 @@ function handleFilterOptionsChange(newFilterOptions: ItemFilterOptions) {
   })
 }
 
-watch(filterOptions, () => {
-  pageNumber.value = DEFAULT_PAGE_NUMBER
+function updateUrlQuery(options: ItemFilterOptions) {
+  router.replace({
+    query: {
+      ...(options.categoryId && { category: options.categoryId.toString() }),
+      ...(options.minPrice !== MIN_PRICE && { minPrice: options.minPrice.toString() }),
+      ...(options.maxPrice !== MAX_PRICE && { maxPrice: options.maxPrice.toString() }),
+    },
+  })
+}
+
+function parseQueryToFilters(query: Record<string, string>) {
+  return {
+    categoryId: query.category ? Number.parseInt(query.category) : undefined,
+    minPrice: query.minPrice ? Number.parseInt(query.minPrice) : MIN_PRICE,
+    maxPrice: query.maxPrice ? Number.parseInt(query.maxPrice) : MAX_PRICE,
+  }
+}
+
+watch(
+  () => route.query,
+  (newQuery) => {
+    filterOptions.value = parseQueryToFilters(newQuery as Record<string, string>)
+  },
+)
+
+onMounted(() => {
+  if (Object.keys(route.query).length > 0) {
+    filterOptions.value = parseQueryToFilters(route.query as Record<string, string>)
+  }
 })
 </script>
 
